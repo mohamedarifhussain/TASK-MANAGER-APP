@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            color: black;
+            transition: background 0.3s, color 0.3s;
+            height: 100vh; /* Ensure body takes full height */
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* Center content vertically */
+        }
+        .container {
+            max-width: 600px;
+            width: 100%; /* Allow container to stretch */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: fixed; /* Fix position */
+            top: 50%; /* Center vertically */
+            left: 50%; /* Center horizontally */
+            transform: translate(-50%, -50%); /* Adjust for centering */
+            max-height: 80%; /* Limit height */
+            overflow-y: auto; /* Allow scrolling if content exceeds */
+            background-color: #f9f9f9; /* Light background for better contrast */
+            transition: background 0.3s; /* Smooth transition for background */
+        }
+        .dark-mode {
+            background-color: black;
+            color: white;
+        }
+        .dark-mode .container {
+            background-color: #333; /* Dark background for container in dark mode */
+        }
+        .task {
+            margin: 10px 0; /* Add margin between tasks */
+            padding: 10px; /* Add padding for better spacing */
+            border: 1px solid #ccc; /* Add border for separation */
+            border-radius: 5px; /* Rounded corners */
+            background-color: #fff; /* White background for tasks */
+            transition: background 0.3s; /* Smooth background transition */
+        }
+        .dark-mode .task {
+            background-color: #444; /* Dark background for tasks in dark mode */
+            color: white; /* Change text color to white in dark mode */
+        }
+        .task:hover {
+            background-color: #b3b1b1; /* Light gray on hover */
+        }
+        /* Input styles */
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: calc(100% - 22px); /* Full width minus padding */
+            padding: 10px;
+            margin: 10px 0; /* Space between inputs */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: #007bff; /* Highlight border on focus */
+            outline: none; /* Remove default outline */
+        }
+        button {
+            padding: 10px 15px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%; /* Full width for the button */
+        }
+        button.add-task {
+            background-color: #007bff; /* Light mode button color */
+        }
+        button.add-task:hover {
+            background-color: #0056b3; /* Darker shade on hover */
+        }
+        button.delete-task {
+            background-color: #dc3545; /* Light mode delete button color */
+        }
+        button.delete-task:hover {
+            background-color: #c82333; /* Darker shade on hover */
+        }
+        /* Dark mode button styles */
+        .dark-mode button.add-task {
+            background-color: #0056b3; /* Dark mode button color */
+        }
+        .dark-mode button.delete-task {
+            background-color: #c82333; /* Dark mode delete button color */
+        }
+        /* Flexbox for date and priority */
+        .input-row {
+            display: flex;
+            justify-content: space-between; /* Space between inputs */
+        }
+        .input-row input[type="date"],
+        .input-row select {
+            width: 48%; /* Occupy 50% width */
+        }
+        /* Toggle button styles */
+        :root {
+            --darkbg: #251D29;
+            --darkt: #FFD1F7;
+            --lightbg: #fff;
+            --lightt: #D43370;
+        }
+        .header {
+            display: flex;
+            align-items: center; /* Align items vertically */
+            justify-content: space-between; /* Space between heading and toggle */
+        }
+        .toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            cursor: pointer;
+            display: inline-block; /* Align with the heading */
+        }
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--darkbg);
+            transition: .4s;
+            border-radius: 30px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white; /* Default color */
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--lightbg);
+        }
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+        /* Change the ball color to black in dark mode */
+        .dark-mode .slider:before {
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1 style="display: inline;">Task Manager</h1>
+            <label class="toggle">
+                <input type="checkbox" id="themeToggle" onclick="toggleTheme()">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div>
+            <input type="text" id="taskTitle" placeholder="Task Title">
+            <div class="input-row">
+                <input type="date" id="taskDate">
+                <select id="taskPriority">
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+            <button class="add-task" onclick="addTask()">Add Task</button>
+        </div>
+        <div id="taskList"></div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            loadTasks();
+            loadDarkMode();
+        });
+
+        function addTask() {
+            let title = document.getElementById("taskTitle").value;
+            let date = document.getElementById("taskDate").value;
+            let priority = document.getElementById("taskPriority").value;
+
+            if (!title) return;
+
+            let task = {
+                id: Date.now(),
+                title,
+                date,
+                priority,
+                completed: false
+            };
+
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            tasks.push(task);
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+
+            document.getElementById("taskTitle").value = "";
+            loadTasks();
+        }
+
+        function loadTasks() {
+            let taskList = document.getElementById("taskList");
+            taskList.innerHTML = "";
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+            tasks.forEach(task => {
+                let taskDiv = document.createElement("div");
+                taskDiv.classList.add("task");
+                if (task.completed) taskDiv.classList.add("completed");
+
+                taskDiv.innerHTML = `
+                    <div>
+                        <strong>${task.title}</strong> - Due: ${task.date} | Priority: ${task.priority}
+                    </div>
+                    <div>
+                        <input type="checkbox" ${task.completed ? "checked" : ""} onclick="toggleComplete(${task.id})">
+                        <button class="delete-task" onclick="deleteTask(${task.id})">Delete</button>
+                    </div>
+                `;
+
+                taskList.appendChild(taskDiv);
+            });
+        }
+
+        function toggleComplete(taskId) {
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            tasks = tasks.map(task => task.id === taskId ? { ...task, completed: !task.completed } : task);
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            loadTasks();
+        }
+
+        function deleteTask(taskId) {
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            tasks = tasks.filter(task => task.id !== taskId);
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            loadTasks();
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle("dark-mode");
+            localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+        }
+
+        function loadDarkMode() {
+            if (JSON.parse(localStorage.getItem("darkMode"))) {
+                document.body.classList.add("dark-mode");
+                document.getElementById("themeToggle").checked = true;
+            }
+        }
+    </script>
+
+</body>
+</html>
