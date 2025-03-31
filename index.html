@@ -191,6 +191,17 @@
             </div>
             <button class="add-task" onclick="addTask()">Add Task</button>
         </div>
+<div class="input-row">
+    <select id="filterStatus" onchange="loadTasks()">
+                <option value="All">All</option>
+                <option value="Completed">Completed</option>
+                <option value="Pending">Pending</option>
+            </select>
+    <select id="sortBy" onchange="loadTasks()">
+                <option value="Date">Sort by Date</option>
+                <option value="Priority">Sort by Priority</option>
+            </select>
+        </div>
         <div id="taskList"></div>
     </div>
 
@@ -227,6 +238,23 @@
             let taskList = document.getElementById("taskList");
             taskList.innerHTML = "";
             let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            let filterStatus = document.getElementById("filterStatus").value;
+            let sortBy = document.getElementById("sortBy").value;
+
+            // Filter tasks based on status
+            if (filterStatus === "Completed") {
+                tasks = tasks.filter(task => task.completed);
+            } else if (filterStatus === "Pending") {
+                tasks = tasks.filter(task => !task.completed);
+            }
+
+            // Sort tasks based on selected criteria
+            if (sortBy === "Date") {
+                tasks.sort((a, b) => new Date(a.date) - new Date(b.date));
+            } else if (sortBy === "Priority") {
+                const priorityOrder = { "High": 1, "Medium": 2, "Low": 3 };
+                tasks.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+            }
 
             tasks.forEach(task => {
                 let taskDiv = document.createElement("div");
